@@ -52,7 +52,7 @@ create or replace view too_long_sprint_view as
                         iteration.id != (select id from iteration where superProjectId = project.id order by startDate limit 1 )
                         and
                         iteration.id != (select id from iteration where superProjectId = project.id order by startDate desc limit 1 )
-                 ) > (SELECT `value` FROM `anti_pattern_properties` WHERE `key` = 'max_sprint_length'), true, false) as `Anti-pattern occurrence`
+                 ) > (select value from anti_pattern_properties where key = 'max_sprint_length'), true, false) as `Anti-pattern occurrence`
     from project inner join iteration on project.id = iteration.superProjectId
     group by project.id
     order by project.id;
