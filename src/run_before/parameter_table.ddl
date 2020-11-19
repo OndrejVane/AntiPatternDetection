@@ -9,3 +9,6 @@ ENGINE = InnoDB;
 
 INSERT INTO `anti_pattern_properties` (`id`, `key`, `value`)
 VALUES (NULL, 'max_sprint_length', '14');
+
+INSERT INTO `anti_pattern_properties` (`id`, `key`, `value`)
+VALUES (NULL, 'max_standard_deviation_for_iteration_length', '5');
