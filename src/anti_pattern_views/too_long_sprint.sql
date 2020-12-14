@@ -17,11 +17,11 @@ create or replace view too_long_sprint_view as
         if(datediff(iteration.endDate, iteration.startDate) >
         (select value from anti_pattern_properties as app where app.key = 'max_sprint_length'), true, false) as `Is too long sprint`
     from iteration
-    where iteration.superProjectId = 1
+    where iteration.superProjectId = $projectId$
             and
-          iteration.id != (select id from iteration where iteration.superProjectId = 1 order by startDate limit 1 )
+          iteration.id != (select id from iteration where iteration.superProjectId = $projectId$ order by startDate limit 1 )
             and
-          iteration.id != (select id from iteration where iteration.superProjectId = 1 order by startDate desc limit 1);
+          iteration.id != (select id from iteration where iteration.superProjectId = $projectId$ order by startDate desc limit 1);
 
 select * from too_long_sprint_view;
 
