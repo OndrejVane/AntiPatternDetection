@@ -13,6 +13,19 @@ Detection: Detect the beginning and end of the iteration and what is
 */
 
 create or replace view too_long_sprint_view as
+    select datediff(iteration.endDate, iteration.startDate) as `Iteration length without extremes`,
+        if(datediff(iteration.endDate, iteration.startDate) >
+        (select value from anti_pattern_properties as app where app.key = 'max_sprint_length'), true, false) as `Is too long sprint`
+    from iteration
+    where iteration.superProjectId = 1
+            and
+          iteration.id != (select id from iteration where iteration.superProjectId = 1 order by startDate limit 1 )
+            and
+          iteration.id != (select id from iteration where iteration.superProjectId = 1 order by startDate desc limit 1);
+
+select * from too_long_sprint_view;
+
+create or replace view iteration_statistics as
     select project.id as `ID`,
            project.name as `Project Name`,
            project.description as `Description`,
@@ -57,4 +70,4 @@ create or replace view too_long_sprint_view as
     group by project.id
     order by project.id;
 
-select * from too_long_sprint_view;
+select * from iteration_statistics;
