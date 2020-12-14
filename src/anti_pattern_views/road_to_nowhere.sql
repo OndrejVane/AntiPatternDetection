@@ -12,7 +12,7 @@ Detection: There is no activity in ALM that would indicate the creation
            TODO: hledat projektový plán v dms nebo ve wiki => zeptat se, kde jsou uloženy dokumenty z wiki nebo DMS
 */
 
-create or replace view road_to_nowhere as
+create or replace view road_to_nowhere_view as
     select project.id as `ID`,
            project.name as `Project Name`,
            count(*) as `Count of issues`,
