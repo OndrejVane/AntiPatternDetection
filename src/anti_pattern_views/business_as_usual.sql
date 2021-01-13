@@ -12,11 +12,11 @@ Detection: There will be no activities in the project
            issue to which no commit is bound, issue which
            will be marked as administration or something like that).
            There will be no notes in the wiki or other tool called
-           retrospectives (% retr%).
+           retrospectives (%retr%).
 
 TODO: 1) zjistit, jestli je to issue bez commitu => kde zjistit návaznost commitů na aktivitu
-      2) zjistit, že na něm logují všichni členové týmu => kde zjistit kdo má zalogováno na aktivitě
-      3) zjistit nějakou zmíňku v ve wiki => zepatat se, kde se nacházejí poznámky z wiki
+
+FIXME: Vymyslet nějakou prahovou hodnotu pro počet aktivit
 */
 create or replace view business_as_usual_view as
     select project.id as `ID`,
@@ -31,3 +31,28 @@ create or replace view business_as_usual_view as
     order by project.id;
 
 select * from business_as_usual_view;
+
+/* Init global variables */
+set @projectId = 5;
+/* Retrospective substring */
+set @restrospectiveSubstring = '%retr%';
+/* Number of developers in project */
+set @numberOfPeople =  (select count(DISTINCT assigneeId) from workunitview where projectId = @projectId and assigneeName != 'unknown');
+/* Number of iterations for given project */
+set @numberOfIterations = (select COUNT(*) from iteration where superProjectId = @projectId);
+/* Number of wikipages with substring retr */
+set @numberOfWikipageWithRetr = (select count(*) from artifactview where projectId = @projectId AND artifactClass like 'WIKIPAGE' AND (name like @restrospectiveSubstring OR description like @restrospectiveSubstring));
+/* NUmber of issues with retr root ends same day like iteration and all members of team are logging  tim on this issue */
+set @numberOfRestrospectiveActivities = (select COUNT(distinct activityEndDate) from
+                                            (select workunitview.id, workunitview.activityEndDate
+                                             from workunitview
+                                             INNER JOIN fieldchangeview on workunitview.id = fieldchangeview.itemId
+                                             where workunitview.projectId = @projectId AND
+                                             fieldchangeview.changeName LIKE 'LOGTIME' AND
+                                             (abs(datediff(workunitview.activityEndDate, workunitview.iterationEndDate) = 0)) AND
+                                             (workunitview.name like @restrospectiveSubstring OR workunitview.description LIKE @restrospectiveSubstring)
+                                              GROUP by workunitview.id
+                                              HAVING COUNT(DISTINCT fieldchangeview.authorId) = @numberOfPeople) as test);
+
+/* Show all statistics */
+select @projectId, @numberOfPeople, @numberOfIterations, @numberOfWikipageWithRetr, @numberOfRestrospectiveActivities;
