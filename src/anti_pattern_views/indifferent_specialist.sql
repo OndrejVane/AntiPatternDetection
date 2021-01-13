@@ -10,17 +10,32 @@ Detection: Take a look at the different types of activities (testing, implementa
            One member should not do only one thing.
 
 TODO: 1) problém je v tom, že categoryName jsou tagy a obsahují více věcí dohromady
+      3) vyzkoušet ještě přes název aktivity a porovnat následně výsledky => poupravit jednotlivé výrazy
 */
 create or replace view indifferent_specialist_view as
     select `assigneeId` as `Project member id`,
            `assigneeName` as `Project member name`,
             count(*) as `Number of issues`,
             count(case when categoryName like '%test%' then 1 end) as `Number of testing issues`,
-            count(case when categoryName like '%arch%' then 1 end) as `Number of architecture issues`,
+            count(case when categoryName like '%arch%' or categoryName like '%des%' then 1 end) as `Number of architecture issues`,
             count(case when categoryName like '%dev%' or categoryName like '%impl%' or categoryName like '%výv%' then 1 end) as `Number of developing issues`,
             count(case when categoryName like '%admin%' or categoryName like '%schůz%' or categoryName like '%proc%' or categoryName like '%meet%' then 1 end) as `Number of administrative issues`,
+            count(case when categoryName like '%req%' or categoryName like '%pož%' then 1 end) as `Number of requirements issues`,
             count(distinct `categoryName`) as `Uniq number of categories`
     from workunitview as wuv
-    where wuv.`projectId` = 4 and
+    where wuv.`projectId` = 5 and
           wuv.`assigneeName` != 'unknown' group by wuv.`assigneeId`;
 
+/* hledání podle názvu aktivity */
+    select `assigneeId` as `Project member id`,
+           `assigneeName` as `Project member name`,
+            count(*) as `Number of issues`,
+            count(case when name like '%test%' then 1 end) as `Number of testing issues`,
+            count(case when name like '%arch%' or name like '%des%' then 1 end) as `Number of architecture issues`,
+            count(case when name like '%dev%' or name like '%impl%' or name like '%výv%' then 1 end) as `Number of developing issues`,
+            count(case when name like '%admin%' or name like '%schůz%' or name like '%proc%' or name like '%meet%' then 1 end) as `Number of administrative issues`,
+            count(case when name like '%req%' or name like '%pož%' then 1 end) as `Number of requirements issues`,
+            count(distinct name) as `Uniq number of categories`
+    from workunitview as wuv
+    where wuv.`projectId` = 5 and
+          wuv.`assigneeName` != 'unknown' group by wuv.`assigneeId`;
