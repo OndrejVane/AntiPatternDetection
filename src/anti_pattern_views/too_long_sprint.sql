@@ -12,62 +12,24 @@ Detection: Detect the beginning and end of the iteration and what is
            the initial and final iterations, as they could skew the result.
 */
 
-create or replace view too_long_sprint_view as
-    select datediff(iteration.endDate, iteration.startDate) as `Iteration length without extremes`,
-        if(datediff(iteration.endDate, iteration.startDate) >
-        (select value from anti_pattern_properties as app where app.key = 'max_sprint_length'), true, false) as `Is too long sprint`
+/* Init project id */
+set @projectId = 5;
+/* Maximum iteration length in days */
+set @maxSprintLength = 14;
+/* Exclude first and last iteration? */
+set @excludeFirstAndLastIteration = true;
+/* Id of first iteration */
+set @idOfFirstIteration = (select id from iteration where iteration.superProjectId = @projectId order by startDate limit 1);
+/* Id of last iteration */
+set @idOfLastIteration = (select id from iteration where iteration.superProjectId = @projectId order by startDate desc limit 1);
+/* Select all too long iterations */
+select datediff(iteration.endDate, iteration.startDate) as `Iteration length`,
+       if(datediff(iteration.endDate, iteration.startDate) > @maxSprintLength, true, false) as `Is too long sprint`,
+       iteration.startDate as `Iteration start date`
     from iteration
-    where iteration.superProjectId = $projectId$
+    where iteration.superProjectId = @projectId
             and
-          iteration.id != (select id from iteration where iteration.superProjectId = $projectId$ order by startDate limit 1 )
+          iteration.id != if(@excludeFirstAndLastIteration = true, @idOfFirstIteration, -1)
             and
-          iteration.id != (select id from iteration where iteration.superProjectId = $projectId$ order by startDate desc limit 1);
-
-select * from too_long_sprint_view;
-
-create or replace view iteration_statistics as
-    select project.id as `ID`,
-           project.name as `Project Name`,
-           project.description as `Description`,
-           count(*) as `Number of iterations`,
-           avg(datediff(iteration.endDate, iteration.startDate)) as `Average Iteration Length`,
-           max(datediff(iteration.endDate, iteration.startDate)) as `Max Iteration Length`,
-           min(datediff(iteration.endDate, iteration.startDate)) as `Min Iteration Length`,
-           (select avg(datediff(iteration.endDate, iteration.startDate))
-                from iteration
-                where   project.id = iteration.superProjectId
-                        and
-                        iteration.id != (select id from iteration where superProjectId = project.id order by startDate limit 1 )
-                        and
-                        iteration.id != (select id from iteration where superProjectId = project.id order by startDate desc limit 1 )
-                        ) as  `Average Iteration Length Without Extremes`,
-           (select max(datediff(iteration.endDate, iteration.startDate))
-                from iteration
-                where   project.id = iteration.superProjectId
-                        and
-                        iteration.id != (SELECT id from iteration where superProjectId = project.id order by startDate limit 1 )
-                        and
-                        iteration.id != (select id from iteration where superProjectId = project.id order by startDate desc limit 1 )
-                        ) as  `Max Iteration Length Without Extremes`,
-           (select  min(datediff(iteration.endDate, iteration.startDate))
-                from iteration
-                where   project.id = iteration.superProjectId
-                        and
-                        iteration.id != (SELECT id from iteration where superProjectId = project.id order by startDate limit 1 )
-                        and
-                        iteration.id != (select id from iteration where superProjectId = project.id order by startDate desc limit 1 )
-                        ) as  `Min Iteration Length Without Extremes`,
-           if(
-                (select avg(datediff(iteration.endDate, iteration.startDate))
-                 from iteration
-                 where  project.id = iteration.superProjectId
-                        and
-                        iteration.id != (select id from iteration where superProjectId = project.id order by startDate limit 1 )
-                        and
-                        iteration.id != (select id from iteration where superProjectId = project.id order by startDate desc limit 1 )
-                 ) > (select value from anti_pattern_properties where key = 'max_sprint_length'), true, false) as `Anti-pattern occurrence`
-    from project inner join iteration on project.id = iteration.superProjectId
-    group by project.id
-    order by project.id;
-
-select * from iteration_statistics;
+          iteration.id != if(@excludeFirstAndLastIteration = true, @idOfLastIteration, -1)
+    order by iteration.startDate;
