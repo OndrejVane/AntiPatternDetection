@@ -8,11 +8,11 @@ Description: A team member who is a specialist in just one thing and does not wa
 Detection: Take a look at the different types of activities (testing, implementation,
            documentation, meetings, etc.) and find out the share among individual team members.
            One member should not do only one thing.
-
-TODO: 1) problém je v tom, že categoryName jsou tagy a obsahují více věcí dohromady
-      3) vyzkoušet ještě přes název aktivity a porovnat následně výsledky => poupravit jednotlivé výrazy
 */
-create or replace view indifferent_specialist_view as
+
+/* Set project id */
+set @projectId = 5;
+/* Classify over category name  for each project member */
     select `assigneeId` as `Project member id`,
            `assigneeName` as `Project member name`,
             count(*) as `Number of issues`,
@@ -23,10 +23,10 @@ create or replace view indifferent_specialist_view as
             count(case when categoryName like '%req%' or categoryName like '%pož%' then 1 end) as `Number of requirements issues`,
             count(distinct `categoryName`) as `Uniq number of categories`
     from workunitview as wuv
-    where wuv.`projectId` = 5 and
+    where wuv.`projectId` = @projectId and
           wuv.`assigneeName` != 'unknown' group by wuv.`assigneeId`;
 
-/* hledání podle názvu aktivity */
+/* Classify over activity name */
     select `assigneeId` as `Project member id`,
            `assigneeName` as `Project member name`,
             count(*) as `Number of issues`,
@@ -37,5 +37,5 @@ create or replace view indifferent_specialist_view as
             count(case when name like '%req%' or name like '%pož%' then 1 end) as `Number of requirements issues`,
             count(distinct name) as `Uniq number of categories`
     from workunitview as wuv
-    where wuv.`projectId` = 5 and
+    where wuv.`projectId` = @projectId and
           wuv.`assigneeName` != 'unknown' group by wuv.`assigneeId`;
