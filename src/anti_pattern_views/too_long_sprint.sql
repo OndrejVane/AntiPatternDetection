@@ -12,10 +12,12 @@ Detection: Detect the beginning and end of the iteration and what is
            the initial and final iterations, as they could skew the result.
 */
 
+/* Set database name */
+use ppicha;
 /* Init project id */
 set @projectId = 5;
 /* Maximum iteration length in days */
-set @maxSprintLength = 14;
+set @maxSprintLength = 20;
 /* Exclude first and last iteration? */
 set @excludeFirstAndLastIteration = true;
 /* Id of first iteration */
