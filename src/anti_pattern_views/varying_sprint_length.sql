@@ -15,6 +15,8 @@ Detection: Detect sprint lengths throughout the project
            Too Long sprint anti-pattern.
 */
 
+/* Set database */
+use ppicha;
 /* Init project id */
 set @projectId = 5;
 /* Maximum sprint length variance */
@@ -25,10 +27,8 @@ set @excludeFirstAndLastIteration = true;
 set @idOfFirstIteration = (select id from iteration where iteration.superProjectId = @projectId order by startDate limit 1);
 /* Id of last iteration */
 set @idOfLastIteration = (select id from iteration where iteration.superProjectId = @projectId order by startDate desc limit 1);
-/* Select all too long iterations */
-select std(datediff(iteration.endDate, iteration.startDate)) as `Standard Deviation Of Iteration Length - σ`,
-       std(datediff(iteration.endDate, iteration.startDate)) * std(datediff(iteration.endDate, iteration.startDate)) as `Deviation Of Iteration Length - σ^2`,
-       if(std(datediff(iteration.endDate, iteration.startDate)) > @maxSprintVariance, 1, 0) as `Anti-pattern occurrence`
+/* Select all iterations with their length */
+select datediff(endDate, startDate)
     from iteration
     where iteration.superProjectId = @projectId
             and
