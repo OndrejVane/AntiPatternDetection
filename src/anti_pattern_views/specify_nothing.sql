@@ -12,3 +12,24 @@ Detection: No specification artifact. There is no issue that will have something
            TODO:
 */
 
+
+/* Init project id */
+set @projectId = 5;
+/* Find number of wikipages with some project specification */
+set @numberOfWikiPages = (select count(name) from artifactview where projectId = @projectId
+                         and (name like '%DSP%' or
+                         name like '%specifikace%' or name like '%specification%' or
+                         description like '%DSP%' or description like '%specifikace%' or
+                         description like '%specification%'));
+/* Find activities for creating DSP or project specification */
+set @numberOfActivitiesForSpecification = (SELECT count(id)
+                                           from workunitview where
+                                           projectId = @projectId and
+                                           (name like '%DSP%' or name like '%specifikace%' or name like '%specification%' or
+                                           description like '%DSP%' or description like '%specifikace%' or
+                                           description like '%specification%'));
+/* Count average length of issues description */
+set @avaregeLengthOfIssueDescription = (select AVG(CHAR_LENGTH(workunitview.description)) from workunitview where workunitview.projectId = @projectId);
+
+/* Show all statistics */
+select @projectId, @numberOfWikiPages, @numberOfActivitiesForSpecification, @avaregeLengthOfIssueDescription;
